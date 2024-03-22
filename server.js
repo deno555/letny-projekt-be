@@ -294,6 +294,30 @@ app.delete('/events/:id', (req, res) => {
 	});
 });
 
+app.delete('/nuke-database/details', (req, res) => {
+    // Assuming db is your database connection
+    db.serialize(() => {
+        db.run('DROP TABLE IF EXISTS event_details', function(err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            return res.json({ message: 'Details deleted successfully' });
+        });
+    });
+});
+
+app.delete('/nuke-database', (req, res) => {
+    // Assuming db is your database connection
+    db.serialize(() => {
+        db.run('DROP TABLE IF EXISTS events', function(err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            return res.json({ message: 'Database deleted successfully' });
+        });
+    });
+});
+
 // Start the server
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
