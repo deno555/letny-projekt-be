@@ -84,13 +84,22 @@ app.post('/events/:id/details/aboutText', (req, res) => {
     const eventId = req.params.id;
     const aboutText = req.body.aboutText;
     
-    db.get('SELECT aboutText form event_details where event_id = ?', [eventId], function(row){
+    db.get('SELECT * FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
+        if (err) {
+            console.error('Error retrieving event details:', err);
+            res.status(500).send('Error retrieving event details');
+            return;
+        }
+
         if (row) {
+            // If aboutText exists, update it
             db.run('UPDATE event_details SET aboutText = ? WHERE event_id = ?', [aboutText, eventId], function(err) {
                 if (err) {
                     console.error('Error updating aboutText:', err);
+                    res.status(500).send('Error updating aboutText');
                 } else {
                     console.log('aboutText updated successfully.');
+                    res.status(200).send('aboutText updated successfully.');
                 }
             });
         } else {
@@ -98,12 +107,14 @@ app.post('/events/:id/details/aboutText', (req, res) => {
             db.run('INSERT INTO event_details (event_id, aboutText) VALUES (?, ?)', [eventId, aboutText], function(err) {
                 if (err) {
                     console.error('Error inserting aboutText:', err);
+                    res.status(500).send('Error inserting aboutText');
                 } else {
                     console.log('New aboutText inserted successfully.');
+                    res.status(200).send('New aboutText inserted successfully.');
                 }
             });
         }
-    })
+    });
 });
 
 app.post('/events/:id/details/notifs', (req, res) => {
