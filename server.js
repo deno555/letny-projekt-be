@@ -104,14 +104,6 @@ app.post('/events/:id/details/aboutText', (req, res) => {
             });
         }
     })
-
-    db.run('UPDATE event_details SET aboutText = ? WHERE event_id = ?', [aboutText, eventId], function(err) {
-        if (err) {
-			console.log(err)
-            return res.status(500).json({ error: err.message });
-        }
-        return res.json({ message: 'About text added successfully' });
-    });
 });
 
 app.post('/events/:id/details/notifs', (req, res) => {
