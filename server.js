@@ -82,8 +82,29 @@ app.get('/events/:id/details', (req, res) => {
 
 app.post('/events/:id/details/aboutText', (req, res) => {
     const eventId = req.params.id;
-    const { aboutText } = req.body;
+    const aboutText = req.body.aboutText;
     
+    db.get('SELECT aboutText form event_details where event_id = ?', [eventId], function(row){
+        if (row) {
+            db.run('UPDATE event_details SET aboutText = ? WHERE event_id = ?', [aboutText, eventId], function(err) {
+                if (err) {
+                    console.error('Error updating aboutText:', err);
+                } else {
+                    console.log('aboutText updated successfully.');
+                }
+            });
+        } else {
+            // If no row exists, insert a new row with the aboutText
+            db.run('INSERT INTO event_details (event_id, aboutText) VALUES (?, ?)', [eventId, aboutText], function(err) {
+                if (err) {
+                    console.error('Error inserting aboutText:', err);
+                } else {
+                    console.log('New aboutText inserted successfully.');
+                }
+            });
+        }
+    })
+
     db.run('UPDATE event_details SET aboutText = ? WHERE event_id = ?', [aboutText, eventId], function(err) {
         if (err) {
 			console.log(err)
