@@ -30,7 +30,6 @@ const db = new sqlite3.Database('events.db', (err) => {
 				feedback TEXT,
 				photos TEXT,
 				schedule TEXT,
-				test TEXT,
 				FOREIGN KEY (event_id) REFERENCES events (id)
 			)
 		`);
