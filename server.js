@@ -268,37 +268,6 @@ app.post('/events/:id/details/schedule', (req, res) => {
     });
 });
 
-app.post('/test', () => {
-	const eventId = 1;
-	const test = { name: 'test'};
-
-	db.get('SELECT test FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
-        let tests = row ? JSON.parse(row.test) : []; // Parse test column as JSON array
-
-        tests.push(test); // Add the new test object to the array
-
-        let testString = JSON.stringify(tests); // Convert the array back to a string
-
-        if (row) {
-            db.run('UPDATE event_details SET test = ? WHERE event_id = ?', [testString, eventId], function(err) {
-                if (err) {
-                    console.error('Error updating test:', err);
-                } else {
-                    console.log('Test updated successfully.');
-                }
-            });
-        } else {
-            db.run('INSERT INTO event_details (event_id, test) VALUES (?, ?)', [eventId, testString], function(err) {
-                if (err) {
-                    console.error('Error inserting test:', err);
-                } else {
-                    console.log('New test inserted successfully.');
-                }
-            });
-        }
-	})
-})
-
 app.delete('/events/:id', (req, res) => {
 	const eventId = req.params.id;
 
