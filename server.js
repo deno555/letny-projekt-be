@@ -17,7 +17,8 @@ const db = new sqlite3.Database('events.db', (err) => {
 		db.run(`
 			CREATE TABLE IF NOT EXISTS events (
 				id INTEGER PRIMARY KEY,
-				name TEXT
+				name TEXT,
+				logo TEXT
 			)
 		`);
 
@@ -49,12 +50,17 @@ app.get('/events', (req, res) => {
 
 //add events
 app.post('/events', (req, res) => {
-	const { name } = req.body;
+	const { name, logo } = req.body; // Destructure both name and logo directly from req.body
+
 	if (!name) {
 		return res.status(400).json({ error: 'Name is required' });
 	}
 
-	db.run('INSERT INTO events (name) VALUES (?)', [name], function (err) {
+	if (!logo) {
+		return res.status(400).json({ error: 'Logo is required' });
+	}
+
+	db.run('INSERT INTO events (name, logo) VALUES (?, ?)', [name, logo], function (err) {
 		if (err) {
 			return res.status(500).json({ error: err.message });
 		}
@@ -80,192 +86,192 @@ app.get('/events/:id/details', (req, res) => {
 });
 
 app.post('/events/:id/details/aboutText', (req, res) => {
-    const eventId = req.params.id;
-    const aboutText = req.body.aboutText;
-    
-    db.get('SELECT * FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
-        if (err) {
-            console.error('Error retrieving event details:', err);
-            res.status(500).send('Error retrieving event details');
-            return;
-        }
+	const eventId = req.params.id;
+	const aboutText = req.body.aboutText;
+	
+	db.get('SELECT * FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
+		if (err) {
+			console.error('Error retrieving event details:', err);
+			res.status(500).send('Error retrieving event details');
+			return;
+		}
 
-        if (row) {
-            // If aboutText exists, update it
-            db.run('UPDATE event_details SET aboutText = ? WHERE event_id = ?', [aboutText, eventId], function(err) {
-                if (err) {
-                    console.error('Error updating aboutText:', err);
-                    res.status(500).send('Error updating aboutText');
-                } else {
-                    console.log('aboutText updated successfully.');
-                    res.status(200).send('aboutText updated successfully.');
-                }
-            });
-        } else {
-            // If no row exists, insert a new row with the aboutText
-            db.run('INSERT INTO event_details (event_id, aboutText) VALUES (?, ?)', [eventId, aboutText], function(err) {
-                if (err) {
-                    console.error('Error inserting aboutText:', err);
-                    res.status(500).send('Error inserting aboutText');
-                } else {
-                    console.log('New aboutText inserted successfully.');
-                    res.status(200).send('New aboutText inserted successfully.');
-                }
-            });
-        }
-    });
+		if (row) {
+			// If aboutText exists, update it
+			db.run('UPDATE event_details SET aboutText = ? WHERE event_id = ?', [aboutText, eventId], function(err) {
+				if (err) {
+					console.error('Error updating aboutText:', err);
+					res.status(500).send('Error updating aboutText');
+				} else {
+					console.log('aboutText updated successfully.');
+					res.status(200).send('aboutText updated successfully.');
+				}
+			});
+		} else {
+			// If no row exists, insert a new row with the aboutText
+			db.run('INSERT INTO event_details (event_id, aboutText) VALUES (?, ?)', [eventId, aboutText], function(err) {
+				if (err) {
+					console.error('Error inserting aboutText:', err);
+					res.status(500).send('Error inserting aboutText');
+				} else {
+					console.log('New aboutText inserted successfully.');
+					res.status(200).send('New aboutText inserted successfully.');
+				}
+			});
+		}
+	});
 });
 
 app.post('/events/:id/details/notifs', (req, res) => {
 	const eventId = req.params.id;
-    const notification = req.body.notifications;
+	const notification = req.body.notifications;
 
-    db.get('SELECT notifications FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
-        let notifications;
+	db.get('SELECT notifications FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
+		let notifications;
 
-        if (row && row.notifications) {
-            notifications = JSON.parse(row.notifications);
-        } else {
-            notifications = [];
-        }
+		if (row && row.notifications) {
+			notifications = JSON.parse(row.notifications);
+		} else {
+			notifications = [];
+		}
 
-        notifications.push(notification); // Add the new notifications object to the array
+		notifications.push(notification); // Add the new notifications object to the array
 
-        let notificationsString = JSON.stringify(notifications); // Convert the array back to a string
+		let notificationsString = JSON.stringify(notifications); // Convert the array back to a string
 
-        if (row) {
-            db.run('UPDATE event_details SET notifications = ? WHERE event_id = ?', [notificationsString, eventId], function(err) {
-                if (err) {
-                    console.error('Error updating notifications:', err);
-                } else {
-                    console.log('notifications updated successfully.');
-                }
-            });
-        } else {
-            // If no row exists, insert a new row with the notifications
-            db.run('INSERT INTO event_details (event_id, notifications) VALUES (?, ?)', [eventId, notificationsString], function(err) {
-                if (err) {
-                    console.error('Error inserting notifications:', err);
-                } else {
-                    console.log('New notifications inserted successfully.');
-                }
-            });
-        }
-    });
+		if (row) {
+			db.run('UPDATE event_details SET notifications = ? WHERE event_id = ?', [notificationsString, eventId], function(err) {
+				if (err) {
+					console.error('Error updating notifications:', err);
+				} else {
+					console.log('notifications updated successfully.');
+				}
+			});
+		} else {
+			// If no row exists, insert a new row with the notifications
+			db.run('INSERT INTO event_details (event_id, notifications) VALUES (?, ?)', [eventId, notificationsString], function(err) {
+				if (err) {
+					console.error('Error inserting notifications:', err);
+				} else {
+					console.log('New notifications inserted successfully.');
+				}
+			});
+		}
+	});
 });
 
 app.post('/events/:id/details/feedback', (req, res) => {
-    const eventId = req.params.id;
-    const feedback = req.body.feedback;
+	const eventId = req.params.id;
+	const feedback = req.body.feedback;
 
-    db.get('SELECT feedback FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
-        let feedbacks;
+	db.get('SELECT feedback FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
+		let feedbacks;
 
-        if (row && row.feedback) {
-            feedbacks = JSON.parse(row.feedback);
-        } else {
-            feedbacks = [];
-        }
+		if (row && row.feedback) {
+			feedbacks = JSON.parse(row.feedback);
+		} else {
+			feedbacks = [];
+		}
 
-        feedbacks.push(feedback); // Add the new feedback object to the array
+		feedbacks.push(feedback); // Add the new feedback object to the array
 
-        let feedbackString = JSON.stringify(feedbacks); // Convert the array back to a string
+		let feedbackString = JSON.stringify(feedbacks); // Convert the array back to a string
 
-        if (row) {
-            db.run('UPDATE event_details SET feedback = ? WHERE event_id = ?', [feedbackString, eventId], function(err) {
-                if (err) {
-                    console.error('Error updating feedback:', err);
-                } else {
-                    console.log('Feedback updated successfully.');
-                }
-            });
-        } else {
-            // If no row exists, insert a new row with the feedback
-            db.run('INSERT INTO event_details (event_id, feedback) VALUES (?, ?)', [eventId, feedbackString], function(err) {
-                if (err) {
-                    console.error('Error inserting feedback:', err);
-                } else {
-                    console.log('New feedback inserted successfully.');
-                }
-            });
-        }
-    });
+		if (row) {
+			db.run('UPDATE event_details SET feedback = ? WHERE event_id = ?', [feedbackString, eventId], function(err) {
+				if (err) {
+					console.error('Error updating feedback:', err);
+				} else {
+					console.log('Feedback updated successfully.');
+				}
+			});
+		} else {
+			// If no row exists, insert a new row with the feedback
+			db.run('INSERT INTO event_details (event_id, feedback) VALUES (?, ?)', [eventId, feedbackString], function(err) {
+				if (err) {
+					console.error('Error inserting feedback:', err);
+				} else {
+					console.log('New feedback inserted successfully.');
+				}
+			});
+		}
+	});
 });
 
 app.post('/events/:id/details/photo', (req, res) => {
 	const eventId = req.params.id;
-    const photo = req.body.photo;
+	const photo = req.body.photo;
 
-    db.get('SELECT photos FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
-        let photos;
+	db.get('SELECT photos FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
+		let photos;
 
-        if (row && row.photos) {
-            photos = JSON.parse(row.photos);
-        } else {
-            photos = [];
-        }
+		if (row && row.photos) {
+			photos = JSON.parse(row.photos);
+		} else {
+			photos = [];
+		}
 
-        photos.push(photo); // Add the new photos object to the array
+		photos.push(photo); // Add the new photos object to the array
 
-        let scheduleString = JSON.stringify(photos); // Convert the array back to a string
+		let scheduleString = JSON.stringify(photos); // Convert the array back to a string
 
-        if (row) {
-            db.run('UPDATE event_details SET photos = ? WHERE event_id = ?', [scheduleString, eventId], function(err) {
-                if (err) {
-                    console.error('Error updating photos:', err);
-                } else {
-                    console.log('photos updated successfully.');
-                }
-            });
-        } else {
-            // If no row exists, insert a new row with the photos
-            db.run('INSERT INTO event_details (event_id, photos) VALUES (?, ?)', [eventId, scheduleString], function(err) {
-                if (err) {
-                    console.error('Error inserting photos:', err);
-                } else {
-                    console.log('New photos inserted successfully.');
-                }
-            });
-        }
-    });
+		if (row) {
+			db.run('UPDATE event_details SET photos = ? WHERE event_id = ?', [scheduleString, eventId], function(err) {
+				if (err) {
+					console.error('Error updating photos:', err);
+				} else {
+					console.log('photos updated successfully.');
+				}
+			});
+		} else {
+			// If no row exists, insert a new row with the photos
+			db.run('INSERT INTO event_details (event_id, photos) VALUES (?, ?)', [eventId, scheduleString], function(err) {
+				if (err) {
+					console.error('Error inserting photos:', err);
+				} else {
+					console.log('New photos inserted successfully.');
+				}
+			});
+		}
+	});
 });
 
 app.post('/events/:id/details/schedule', (req, res) => {
-    const eventId = req.params.id;
-    const schedule = req.body.schedule;
+	const eventId = req.params.id;
+	const schedule = req.body.schedule;
 
-    db.get('SELECT schedule FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
-        let schedules;
+	db.get('SELECT schedule FROM event_details WHERE event_id = ?', [eventId], function(err, row) {
+		let schedules;
 
-        if (row && row.schedule) {
-            schedules = JSON.parse(row.schedule);
-        } else {
-            schedules = [];
-        }
+		if (row && row.schedule) {
+			schedules = JSON.parse(row.schedule);
+		} else {
+			schedules = [];
+		}
 
-        schedules.push(schedule); // Add the new schedule object to the array
+		schedules.push(schedule); // Add the new schedule object to the array
 
-        let scheduleString = JSON.stringify(schedules); // Convert the array back to a string
+		let scheduleString = JSON.stringify(schedules); // Convert the array back to a string
 
-        if (row) {
-            db.run('UPDATE event_details SET schedule = ? WHERE event_id = ?', [scheduleString, eventId], function(err) {
-                if (err) {
-                    console.error('Error updating schedule:', err);
-                } else {
-                    console.log('Schedule updated successfully.');
-                }
-            });
-        } else {
-            // If no row exists, insert a new row with the schedule
-            db.run('INSERT INTO event_details (event_id, schedule) VALUES (?, ?)', [eventId, scheduleString], function(err) {
-                if (err) {
-                    console.error('Error inserting schedule:', err);
-                } else {
-                    console.log('New schedule inserted successfully.');
-                }
-            });
-        }
-    });
+		if (row) {
+			db.run('UPDATE event_details SET schedule = ? WHERE event_id = ?', [scheduleString, eventId], function(err) {
+				if (err) {
+					console.error('Error updating schedule:', err);
+				} else {
+					console.log('Schedule updated successfully.');
+				}
+			});
+		} else {
+			// If no row exists, insert a new row with the schedule
+			db.run('INSERT INTO event_details (event_id, schedule) VALUES (?, ?)', [eventId, scheduleString], function(err) {
+				if (err) {
+					console.error('Error inserting schedule:', err);
+				} else {
+					console.log('New schedule inserted successfully.');
+				}
+			});
+		}
+	});
 });
 
 app.delete('/events/:id', (req, res) => {
